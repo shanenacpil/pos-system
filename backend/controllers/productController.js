@@ -32,3 +32,16 @@ exports.lowStock = (req, res) => {
   res.json(lowStockItems);
 };
 
+exports.lowStock = (req, res) => {
+  const { brand, category, size } = req.query;
+
+  let results = Product.getAll().filter(p => p.stock < (p.lowStock ?? 0));
+
+  if (brand) results = results.filter(p => p.brand?.toLowerCase() === brand.toLowerCase());
+  if (category) results = results.filter(p => p.category?.toLowerCase() === category.toLowerCase());
+  if (size) results = results.filter(p => p.size?.toLowerCase() === size.toLowerCase());
+
+  res.json(results);
+};
+
+
