@@ -26,3 +26,9 @@ exports.remove = (req, res) => {
   if (!success) return res.status(404).json({ message: 'Product not found' });
   res.status(204).send();
 };
+
+exports.lowStock = (req, res) => {
+  const lowStockItems = Product.getAll().filter(p => p.stock < (p.lowStock ?? 0));
+  res.json(lowStockItems);
+};
+
