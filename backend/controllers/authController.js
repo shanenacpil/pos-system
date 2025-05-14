@@ -15,12 +15,7 @@ exports.login = (req, res) => {
 };
 
 exports.register = (req, res) => {
-  const { email, password, role } = req.body;
-  if (User.findByEmail(email)) {
-    return res.status(409).json({ message: 'User already exists' });
-  }
-  const hashed = bcrypt.hashSync(password, 8);
-  const newUser = { id: Date.now().toString(), email, password: hashed, role };
-  User.createUser(newUser);
   res.status(201).json({ message: 'User registered' });
 };
+
+
