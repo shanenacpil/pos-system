@@ -13,3 +13,5 @@ router.put('/:id', auth, productController.update);
 router.delete('/:id', auth, productController.remove);
 
 module.exports = router;
+
+router.get('/low-stock', auth, productController.lowStock);
