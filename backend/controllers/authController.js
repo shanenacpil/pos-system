@@ -18,4 +18,9 @@ exports.register = (req, res) => {
   res.status(201).json({ message: 'User registered' });
 };
 
+exports.login = (req, res) => {
+  res.status(200).json({ token: 'fake-token' });
+};
+
+
 
