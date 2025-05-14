@@ -8,6 +8,9 @@ app.use(express.json());
 const authRoutes = require('./routes/auth');
 app.use('/api/auth', authRoutes);
 
+const productRoutes = require('./routes/products');
+app.use('/api/products', productRoutes);
+
 app.get('/', (req, res) => res.send('POS system is live!'));
 
 const PORT = process.env.PORT || 8080;
