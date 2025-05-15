@@ -27,6 +27,17 @@ exports.create = (req, res) => {
 
   const total = subtotal + tax;
 
+  const Product = require('../models/Product');
+
+// Reduce stock for each product sold
+items.forEach(item => {
+  const product = Product.getById(item.productId);
+  if (product) {
+    const newStock = (product.stock || 0) - item.quantity;
+    Product.update(item.productId, { stock: newStock });
+  }
+});
+
 const sale = Sale.create({
   customerId,
   items,
