@@ -11,7 +11,14 @@ exports.getById = (req, res) => {
 };
 
 exports.create = (req, res) => {
-  const { items, customerId, tax = 0, paymentStatus = 'unpaid', note = '' } = req.body;
+  const {
+  items,
+  customerId,
+  tax = 0,
+  paymentStatus = 'unpaid',
+  paymentMode = 'cash',
+  note = ''
+} = req.body;
 
   const subtotal = items.reduce((acc, item) => {
     const itemTotal = (item.price - (item.discount || 0)) * item.quantity;
@@ -20,15 +27,16 @@ exports.create = (req, res) => {
 
   const total = subtotal + tax;
 
-  const sale = Sale.create({
-    customerId,
-    items,
-    subtotal,
-    tax,
-    total,
-    paymentStatus,
-    note
-  });
+const sale = Sale.create({
+  customerId,
+  items,
+  subtotal,
+  tax,
+  total,
+  paymentStatus,
+  paymentMode,
+  note
+});
 
   res.status(201).json(sale);
 };
