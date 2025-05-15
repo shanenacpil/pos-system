@@ -20,6 +20,21 @@ exports.create = (req, res) => {
   note = ''
 } = req.body;
 
+  const Product = require('../models/Product');
+
+// Block overselling
+for (let item of items) {
+  const product = Product.getById(item.productId);
+  if (!product) {
+    return res.status(404).json({ message: `Product not found: ${item.productId}` });
+  }
+  if (product.stock < item.quantity) {
+    return res.status(400).json({
+      message: `Insufficient stock for ${product.name}. Available: ${product.stock}, Requested: ${item.quantity}`
+    });
+  }
+}
+
   const subtotal = items.reduce((acc, item) => {
     const itemTotal = (item.price - (item.discount || 0)) * item.quantity;
     return acc + itemTotal;
