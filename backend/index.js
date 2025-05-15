@@ -20,3 +20,7 @@ app.listen(PORT, '0.0.0.0', () => {
 
 const customerRoutes = require('./routes/customers');
 app.use('/api/customers', customerRoutes);
+
+const saleRoutes = require('./routes/sales');
+app.use('/api/sales', saleRoutes);
+
