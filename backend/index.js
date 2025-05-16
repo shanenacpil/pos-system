@@ -30,4 +30,8 @@ app.use('/api/payments', paymentRoutes);
 const invoiceRoutes = require('./routes/invoices');
 app.use('/api/invoices', invoiceRoutes);
 
+const printableInvoiceRoutes = require('./routes/printableInvoice');
+app.use('/print/invoice', printableInvoiceRoutes);
+
+
 
