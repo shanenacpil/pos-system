@@ -1,32 +1,86 @@
 const express = require('express');
 const router = express.Router();
-const puppeteer = require('puppeteer');
+const fs = require('fs');
+const path = require('path');
+const pdf = require('html-pdf-node');
+
+const Sale = require('../models/Sale');
+const Product = require('../models/Product');
+const Customer = require('../models/Customer');
+const Payment = require('../models/Payment');
 
 router.get('/:saleId', async (req, res) => {
-  const url = `${req.protocol}://${req.get('host')}/print/invoice/${req.params.saleId}`;
+  const sale = Sale.getById(req.params.saleId);
+  if (!sale) return res.status(404).send('Sale not found');
 
-  try {
-    const browser = await puppeteer.launch({
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
+  const customer = Customer.getById(sale.customerId) || { name: 'Walk-in', group: 'retail' };
+  const payments = Payment.getBySaleId(sale.id) || [];
 
-    const page = await browser.newPage();
-    await page.goto(url, { waitUntil: 'networkidle0' });
+  const itemsHtml = sale.items.map(item => {
+    const product = Product.getById(item.productId) || {};
+    const total = (item.price - (item.discount || 0)) * item.quantity;
+    return `
+      <tr>
+        <td>${product.name || 'Unknown'}</td>
+        <td>${item.quantity}</td>
+        <td>${item.price.toFixed(2)}</td>
+        <td>${item.discount || 0}</td>
+        <td>${total.toFixed(2)}</td>
+      </tr>
+    `;
+  }).join('');
 
-    const pdfBuffer = await page.pdf({ format: 'A4' });
+  const html = `
+    <html>
+      <head>
+        <style>
+          body { font-family: Arial; padding: 20px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+          th, td { border: 1px solid #ccc; padding: 8px; }
+          th { background-color: #f4f4f4; }
+        </style>
+      </head>
+      <body>
+        <h2>Invoice #${sale.id}</h2>
+        <p><strong>Date:</strong> ${new Date(sale.createdAt).toLocaleString()}</p>
+        <p><strong>Customer:</strong> ${customer.name} (${customer.group})</p>
+        <p><strong>Payment:</strong> ${sale.paymentMode} - ${sale.paymentStatus}</p>
 
-    await browser.close();
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Qty</th>
+              <th>Unit Price</th>
+              <th>Discount</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemsHtml}
+          </tbody>
+        </table>
 
-    res.set({
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename=invoice-${req.params.saleId}.pdf`,
-    });
+        <p><strong>Subtotal:</strong> AED ${sale.subtotal.toFixed(2)}</p>
+        <p><strong>Tax:</strong> AED ${sale.tax.toFixed(2)}</p>
+        <p><strong>Total:</strong> AED ${sale.total.toFixed(2)}</p>
+        <p><strong>Note:</strong> ${sale.note}</p>
+      </body>
+    </html>
+  `;
 
-    res.send(pdfBuffer);
-  } catch (err) {
-    console.error('PDF generation error:', err);
-    res.status(500).send('Failed to generate PDF.');
-  }
+  const file = { content: html };
+
+  const options = { format: 'A4' };
+
+  const pdfBuffer = await pdf.generatePdf(file, options);
+
+  res.set({
+    'Content-Type': 'application/pdf',
+    'Content-Disposition': `attachment; filename=invoice-${sale.id}.pdf`
+  });
+
+  res.send(pdfBuffer);
 });
 
 module.exports = router;
