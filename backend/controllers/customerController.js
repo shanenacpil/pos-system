@@ -11,9 +11,15 @@ exports.getById = (req, res) => {
 };
 
 exports.create = (req, res) => {
-  const customer = Customer.create(req.body);
-  res.status(201).json(customer);
+  const newCustomer = {
+    id: `CUST${Date.now().toString().slice(-5)}`,  // auto ID like CUST38421
+    ...req.body
+  };
+
+  Customer.create(newCustomer);
+  res.status(201).json(newCustomer);
 };
+
 
 exports.update = (req, res) => {
   const updated = Customer.update(req.params.id, req.body);
