@@ -13,7 +13,8 @@ router.get('/:saleId', async (req, res) => {
   const sale = Sale.getById(req.params.saleId);
   if (!sale) return res.status(404).send('Sale not found');
 
-  const customer = Customer.getById(sale.customerId) || { name: 'Walk-in', group: 'retail' };
+  const customer = Customer.getById(sale.customerId) || { name: "Walk-in", group: "retail" };
+
   const payments = Payment.getBySaleId(sale.id) || [];
 
   const itemsHtml = sale.items.map(item => {
