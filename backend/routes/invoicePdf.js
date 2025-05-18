@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const pdf = require('html-pdf-node');
+const puppeteer = require('puppeteer');
 
 const Sale = require('../models/Sale');
 const Product = require('../models/Product');
@@ -47,7 +47,6 @@ router.get('/:saleId', async (req, res) => {
           <p><strong>Date:</strong> ${new Date(sale.createdAt).toLocaleString()}</p>
           <p><strong>Customer:</strong> ${customer.name} (${customer.group})</p>
           <p><strong>Payment:</strong> ${sale.paymentMode} - ${sale.paymentStatus}</p>
-
           <table>
             <thead>
               <tr>
@@ -62,7 +61,6 @@ router.get('/:saleId', async (req, res) => {
               ${itemsHtml}
             </tbody>
           </table>
-
           <p><strong>Subtotal:</strong> AED ${(sale.subtotal || 0).toFixed(2)}</p>
           <p><strong>Tax:</strong> AED ${(sale.tax || 0).toFixed(2)}</p>
           <p><strong>Total:</strong> AED ${(sale.total || 0).toFixed(2)}</p>
@@ -71,10 +69,14 @@ router.get('/:saleId', async (req, res) => {
       </html>
     `;
 
-    const file = { content: html };
-    const options = { format: 'A4' };
+    const browser = await puppeteer.launch({
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
 
-    const pdfBuffer = await pdf.generatePdf(file, options);
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'networkidle0' });
+    const pdfBuffer = await page.pdf({ format: 'A4' });
+    await browser.close();
 
     res.set({
       'Content-Type': 'application/pdf',
@@ -84,8 +86,8 @@ router.get('/:saleId', async (req, res) => {
     res.send(pdfBuffer);
 
   } catch (err) {
-    console.error("PDF generation error:", err);
-    res.status(500).send("Failed to generate PDF.");
+    console.error('PDF generation error:', err);
+    res.status(500).send('Failed to generate PDF.');
   }
 });
 
