@@ -11,10 +11,11 @@ exports.getById = (req, res) => {
 };
 
 exports.create = (req, res) => {
-  const newCustomer = {
-    id: `CUST${Date.now().toString().slice(-5)}`,
-    ...req.body
-  };
+const newCustomer = {
+  id: req.body.id || `CUST${Date.now().toString().slice(-5)}`,
+  ...req.body
+};
+
 
   Customer.create(newCustomer);
   res.status(201).json(newCustomer);
