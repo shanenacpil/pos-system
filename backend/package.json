@@ -1,16 +1,6 @@
-{
-  "name": "pos-backend",
-  "version": "1.0.0",
-  "description": "POS System Backend",
-  "main": "index.js",
-  "scripts": {
-    "start": "node index.js"
-  },
-  "dependencies": {
-    "express": "^5.1.0",
-    "jsonwebtoken": "^9.0.0",
-    "bcryptjs": "^2.4.3",
-    "cors": "^2.8.5",
-    "puppeteer": "^21.3.8"
-  }
+"dependencies": {
+  "express": "^5.1.0",
+  "jsonwebtoken": "^9.0.0",
+  "bcryptjs": "^2.4.3",
+  "cors": "^2.8.5"
 }
