@@ -33,6 +33,13 @@ app.use('/api/invoices', invoiceRoutes);
 const invoiceHtmlRoutes = require('./routes/invoiceHtml');
 app.use('/print/invoice', invoiceHtmlRoutes);
 
+const supplierRoutes = require('./routes/suppliers');
+app.use('/api/suppliers', supplierRoutes);
+
+const purchaseRoutes = require('./routes/purchases');
+app.use('/api/purchases', purchaseRoutes);
+
+
 
 
 
