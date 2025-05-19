@@ -36,6 +36,9 @@ app.use('/print/invoice', printableInvoiceRoutes);
 const invoicePdfRoutes = require('./routes/invoicePdf');
 app.use('/api/invoice/pdf', invoicePdfRoutes);
 
+const invoiceHtmlRoutes = require('./routes/invoiceHtml');
+app.use('/print/invoice', invoiceHtmlRoutes);
+
 
 
 
