@@ -12,14 +12,12 @@ router.get('/:purchaseId', (req, res) => {
   const supplier = Supplier.getById(purchase.supplierId) || {
     name: 'Unknown Supplier',
     contact: '',
-    address: ''
+    address: '',
+    phone: ''
   };
 
   const itemsHtml = purchase.items.map((item, index) => {
     const product = Product.getById(item.productId) || {};
-    const description = product.name || 'Unknown';
-    const code = product.sku || '';
-    const unit = product.size || 'pcs';
     const unitPrice = product.cost || 0;
     const qty = item.quantity || 0;
     const lineTotal = unitPrice * qty;
@@ -27,10 +25,13 @@ router.get('/:purchaseId', (req, res) => {
     return `
       <tr>
         <td>${index + 1}</td>
-        <td>${code}</td>
-        <td>${description}</td>
+        <td>${product.name || '-'}</td>
+        <td>${product.sku || '-'}</td>
+        <td>${product.barcode || '-'}</td>
+        <td>${product.brand || '-'}</td>
+        <td>${product.size || '-'}</td>
         <td>${qty}</td>
-        <td>${unit}</td>
+        <td>pcs</td>
         <td>AED ${unitPrice.toFixed(2)}</td>
         <td>AED ${lineTotal.toFixed(2)}</td>
       </tr>
@@ -79,17 +80,18 @@ router.get('/:purchaseId', (req, res) => {
           <thead>
             <tr>
               <th>SN</th>
-              <th>Item Code</th>
-              <th>Description</th>
+              <th>Item Name</th>
+              <th>SKU</th>
+              <th>Barcode</th>
+              <th>Brand</th>
+              <th>Size</th>
               <th>Qty</th>
               <th>Unit</th>
               <th>Unit Price</th>
               <th>Line Total</th>
             </tr>
           </thead>
-          <tbody>
-            ${itemsHtml}
-          </tbody>
+          <tbody>${itemsHtml}</tbody>
         </table>
 
         <h4 style="text-align: right; margin-top: 30px;">
