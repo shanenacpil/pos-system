@@ -39,6 +39,10 @@ app.use('/api/suppliers', supplierRoutes);
 const purchaseRoutes = require('./routes/purchases');
 app.use('/api/purchases', purchaseRoutes);
 
+const printPurchaseRoutes = require('./routes/printPurchase');
+app.use('/print/purchase', printPurchaseRoutes);
+
+
 
 
 
