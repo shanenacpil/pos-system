@@ -26,3 +26,23 @@ router.post('/', (req, res) => {
 });
 
 module.exports = router;
+
+router.post('/return/:purchaseId', (req, res) => {
+  const purchase = Purchase.getById(req.params.purchaseId);
+  if (!purchase) return res.status(404).json({ message: 'Purchase not found' });
+
+  purchase.items.forEach(item => {
+    const product = Product.getById(item.productId);
+    if (product) {
+      const newStock = (product.stock || 0) - item.quantity;
+      Product.update(item.productId, { stock: newStock });
+    }
+  });
+
+  res.json({
+    message: `Stock reversed for Purchase #${purchase.id}`,
+    reverted: purchase.items.length,
+    purchaseId: purchase.id
+  });
+});
+
