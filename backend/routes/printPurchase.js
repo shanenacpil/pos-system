@@ -9,17 +9,39 @@ router.get('/:purchaseId', (req, res) => {
   const purchase = Purchase.getById(req.params.purchaseId);
   if (!purchase) return res.status(404).send('Purchase not found');
 
-  const supplier = Supplier.getById(purchase.supplierId) || { name: 'Unknown Supplier' };
+  const supplier = Supplier.getById(purchase.supplierId) || {
+    name: 'Unknown Supplier',
+    contact: '',
+    address: ''
+  };
 
-  const itemsHtml = purchase.items.map(item => {
+  const itemsHtml = purchase.items.map((item, index) => {
     const product = Product.getById(item.productId) || {};
+    const description = product.name || 'Unknown';
+    const code = product.sku || '';
+    const unit = product.size || 'pcs';
+    const unitPrice = product.cost || 0;
+    const qty = item.quantity || 0;
+    const lineTotal = unitPrice * qty;
+
     return `
       <tr>
-        <td>${product.name || 'Unknown'}</td>
-        <td>${item.quantity}</td>
+        <td>${index + 1}</td>
+        <td>${code}</td>
+        <td>${description}</td>
+        <td>${qty}</td>
+        <td>${unit}</td>
+        <td>AED ${unitPrice.toFixed(2)}</td>
+        <td>AED ${lineTotal.toFixed(2)}</td>
       </tr>
     `;
   }).join('');
+
+  const subtotal = purchase.items.reduce((sum, item) => {
+    const product = Product.getById(item.productId) || {};
+    const unitPrice = product.cost || 0;
+    return sum + (unitPrice * item.quantity);
+  }, 0);
 
   res.send(`
     <html>
@@ -27,9 +49,12 @@ router.get('/:purchaseId', (req, res) => {
         <title>Purchase Order #${purchase.id}</title>
         <style>
           body { font-family: Arial; padding: 20px; }
+          h2, h4 { margin-bottom: 0; }
+          p { margin-top: 4px; }
           table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-          th, td { border: 1px solid #ccc; padding: 8px; }
+          th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
           th { background-color: #f4f4f4; }
+          .no-print { margin-bottom: 20px; }
           @media print {
             .no-print { display: none; }
           }
@@ -37,20 +62,42 @@ router.get('/:purchaseId', (req, res) => {
       </head>
       <body>
         <button class="no-print" onclick="window.print()">🖨 Print / Save as PDF</button>
+        
         <h2>Purchase Order #${purchase.id}</h2>
         <p><strong>Date:</strong> ${new Date(purchase.createdAt).toLocaleString()}</p>
-        <p><strong>Supplier:</strong> ${supplier.name}</p>
-        <p><strong>Note:</strong> ${purchase.note}</p>
+        
+        <h4>Vendor Information</h4>
+        <p><strong>Name:</strong> ${supplier.name}</p>
+        <p><strong>Address:</strong> ${supplier.address || '-'}</p>
+        <p><strong>Contact Person:</strong> ${supplier.contact || '-'}</p>
+        <p><strong>Contact Number:</strong> ${supplier.phone || '-'}</p>
+
+        <h4>Delivery Address</h4>
+        <p>Warehouse, Dubai, UAE</p>
 
         <table>
           <thead>
             <tr>
-              <th>Product</th>
-              <th>Quantity</th>
+              <th>SN</th>
+              <th>Item Code</th>
+              <th>Description</th>
+              <th>Qty</th>
+              <th>Unit</th>
+              <th>Unit Price</th>
+              <th>Line Total</th>
             </tr>
           </thead>
-          <tbody>${itemsHtml}</tbody>
+          <tbody>
+            ${itemsHtml}
+          </tbody>
         </table>
+
+        <h4 style="text-align: right; margin-top: 30px;">
+          Subtotal: AED ${subtotal.toFixed(2)}<br/>
+          Total: <strong>AED ${subtotal.toFixed(2)}</strong>
+        </h4>
+
+        <p><strong>Note:</strong> ${purchase.note || 'N/A'}</p>
       </body>
     </html>
   `);
