@@ -12,16 +12,13 @@ const Customer = require('../models/Customer');
 
 // 1. Sales Report (optional filter: from, to)
 router.get('/sales', (req, res) => {
-  const from = req.query.from ? new Date(req.query.from) : null;
-  const to = req.query.to ? new Date(req.query.to) : null;
+  const { from, to } = req.query;
+  const filtered = Sale.getAll().filter(sale => isWithinRange(sale.createdAt, from, to));
 
-  let filteredSales = Sale.getAll();
+  const totalSales = filtered.reduce((sum, s) => sum + s.total, 0);
+  res.json({ count: filtered.length, totalSales, sales: filtered });
+});
 
-  if (from || to) {
-    filteredSales = filteredSales.filter(sale => {
-      const saleDate = new Date(sale.createdAt);
-      return (!from || saleDate >= from) && (!to || saleDate <= to);
-    });
   }
 
   const totalSales = filteredSales.reduce((sum, sale) => sum + sale.total, 0);
@@ -48,45 +45,39 @@ router.get('/inventory', (req, res) => {
 
 // 3. Tax Report
 router.get('/taxes', (req, res) => {
-  const sales = Sale.getAll();
-  const totalTax = sales.reduce((sum, sale) => sum + (sale.tax || 0), 0);
+  const { from, to } = req.query;
+  const filtered = Sale.getAll().filter(sale => isWithinRange(sale.createdAt, from, to));
 
-  res.json({
-    count: sales.length,
-    totalTax
+  const totalTax = filtered.reduce((sum, s) => sum + (s.tax || 0), 0);
+  res.json({ count: filtered.length, totalTax });
   });
 });
 
 // 4. Profit Margin Report
 router.get('/profit', (req, res) => {
-  const sales = Sale.getAll();
-  const profitItems = [];
+  const { from, to } = req.query;
+  const sales = Sale.getAll().filter(sale => isWithinRange(sale.createdAt, from, to));
 
   let totalProfit = 0;
+  const profitItems = [];
 
   sales.forEach(sale => {
     sale.items.forEach(item => {
       const product = Product.getById(item.productId);
       if (product) {
-        const cost = product.cost || 0;
-        const sellPrice = item.price || 0;
-        const qty = item.quantity || 0;
-        const profit = (sellPrice - cost) * qty;
+        const profit = (item.price - product.cost) * item.quantity;
         totalProfit += profit;
-
         profitItems.push({
           productId: product.id,
           name: product.name,
-          qty,
+          qty: item.quantity,
           profit
         });
       }
     });
   });
 
-  res.json({
-    totalProfit: totalProfit.toFixed(2),
-    products: profitItems
+  res.json({ totalProfit: totalProfit.toFixed(2), products: profitItems });
   });
 });
 
