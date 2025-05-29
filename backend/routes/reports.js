@@ -1,3 +1,8 @@
+const isWithinRange = (date, from, to) => {
+  const d = new Date(date);
+  return (!from || d >= new Date(from)) && (!to || d <= new Date(to));
+};
+
 const express = require('express');
 const router = express.Router();
 
